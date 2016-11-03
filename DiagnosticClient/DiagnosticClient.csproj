@@ -39,29 +39,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Migrations\201610280917031_migr.cs" />
-    <Compile Include="Migrations\201610280917031_migr.Designer.cs">
-      <DependentUpon>201610280917031_migr.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201610281038576_migr1.cs" />
-    <Compile Include="Migrations\201610281038576_migr1.Designer.cs">
-      <DependentUpon>201610281038576_migr1.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201610281100348_migr2.cs" />
-    <Compile Include="Migrations\201610281100348_migr2.Designer.cs">
-      <DependentUpon>201610281100348_migr2.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201610281103013_migr3.cs" />
-    <Compile Include="Migrations\201610281103013_migr3.Designer.cs">
-      <DependentUpon>201610281103013_migr3.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201610281105027_migr4.cs" />
-    <Compile Include="Migrations\201610281105027_migr4.Designer.cs">
-      <DependentUpon>201610281105027_migr4.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201610281132341_migr5.cs" />
-    <Compile Include="Migrations\201610281132341_migr5.Designer.cs">
-      <DependentUpon>201610281132341_migr5.cs</DependentUpon>
+    <Compile Include="Migrations\201611021939520_migr.cs" />
+    <Compile Include="Migrations\201611021939520_migr.Designer.cs">
+      <DependentUpon>201611021939520_migr.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="MyModel.cs" />
@@ -69,6 +49,7 @@
     <Compile Include="NodeGroup.cs" />
     <Compile Include="NodeLog.cs" />
     <Compile Include="NodeOnlinePeriod.cs" />
+    <Compile Include="Ping.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -91,23 +72,8 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201610280917031_migr.resx">
-      <DependentUpon>201610280917031_migr.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201610281038576_migr1.resx">
-      <DependentUpon>201610281038576_migr1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201610281100348_migr2.resx">
-      <DependentUpon>201610281100348_migr2.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201610281103013_migr3.resx">
-      <DependentUpon>201610281103013_migr3.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201610281105027_migr4.resx">
-      <DependentUpon>201610281105027_migr4.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201610281132341_migr5.resx">
-      <DependentUpon>201610281132341_migr5.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201611021939520_migr.resx">
+      <DependentUpon>201611021939520_migr.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -7,13 +7,13 @@ namespace DiagnosticClient.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class migr3 : IMigrationMetadata
+    public sealed partial class migr : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(migr3));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(migr));
         
         string IMigrationMetadata.Id
         {
-            get { return "201610281103013_migr3"; }
+            get { return "201611021939520_migr"; }
         }
         
         string IMigrationMetadata.Source

@@ -8,17 +8,23 @@ namespace DiagnosticClient
 
         public NodeLog()
         {
-
         }
+        public int NodeId { get; set; }
+        public Node Node { get; set; }
+
         public int Id { get; set; }
         public DateTime Time { get; set; }
-        public int? Level { get; set; }
+
+        [Required]
+        public string Level { get; set; }
 
         [MaxLength(8000),Required]
         public string Message { get; set; }
 
-        public int NodeId { get; set; }
-        [ForeignKey("NodeId")]
-        public Node Node { get; set; }
+        void SaveLog(int NodeId,string Message, DateTime Time)
+        {
+
+        }
+ 
     }
 }
