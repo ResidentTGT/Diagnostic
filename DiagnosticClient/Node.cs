@@ -17,6 +17,7 @@ namespace DiagnosticClient
         [MaxLength(128)]
         public string Name { get; set; }
 
+        
         public NodeGroup NodeGroup { get; set; }
         public int? NodeGroupId { get; set; }
 
