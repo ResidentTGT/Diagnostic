@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 namespace DiagnosticClient
 {
+    [Table("OnlinePeriods", Schema = "Diagnostics")]
     public class NodeOnlinePeriod
     {
         public NodeOnlinePeriod()
@@ -15,8 +16,8 @@ namespace DiagnosticClient
         public Node Node { get; set; }
 
         [Required]
-        public DateTime TimeStart { get; set; }
+        public DateTime StartTime { get; set; }
         [Required]
-        public DateTime TimeEnd { get; set; }
+        public DateTime EndTime { get; set; }
     }
 }

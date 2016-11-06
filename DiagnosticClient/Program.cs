@@ -6,66 +6,80 @@ using System.Threading.Tasks;
 
 namespace DiagnosticClient
 {
+
     class Program
     {
+
         static void Main()
         {
-            using (MyModel context = new MyModel())
-            {              
-                while (Console.ReadKey().Key!=ConsoleKey.Escape)
+            using (DiagnosticContext context = new DiagnosticContext())
+            {
+
+                while (Console.ReadKey().Key != ConsoleKey.Escape)
                 {
-                    Console.WriteLine("Enter the name of node");
-                    string node_name = Console.ReadLine();
-                    DateTime time_start = DateTime.Now;
-                   
-                    if (node_name != "")
-                    {                       
-                        if (MyModel.GetNodeId(node_name) == 0)
-                        {
-                            Console.WriteLine("Enter the name of nodegroup");
-                            string nodegroup = Console.ReadLine();
-
-                            if (nodegroup == "")
-                            {                              
-                                context.Nodes.Add(new Node { Name = node_name });
-                                context.SaveChanges();
-                                Ping.HandlePing(node_name, time_start);                               
-                            }
-                            else
-                            {
-
-                                int id = MyModel.GetGroupId(nodegroup);
-                                if (id == 0)
-                                {
-
-                                    context.NodeGroups.Add(new NodeGroup { Name = nodegroup });
-                                    context.SaveChanges();
-
-                                    var group = context.NodeGroups
-                                     .Where(g => g.Name == nodegroup)
-                                     .FirstOrDefault();
-
-                                    context.Nodes.Add(new Node { Name = node_name, NodeGroupId = group.Id });
-                                    context.SaveChanges();
-                                    Ping.HandlePing(node_name, time_start);
-
-                                }
-                                else
-                                {
-                                    context.Nodes.Add(new Node { Name = node_name, NodeGroupId = id });
-                                    context.SaveChanges();
-                                    Ping.HandlePing(node_name, time_start);
-                                }
-                            }                                                    
-                        }
-                        else
-                        {
-                            Ping.HandlePing(node_name, time_start);
-                        }
+                    string nodeName;
+                    do
+                    {
+                        Console.WriteLine("\nEnter the name of node");
+                        nodeName = Console.ReadLine();
+                        if (string.IsNullOrWhiteSpace(nodeName))
+                            Console.WriteLine("Name cannot be empty");
                     }
-                    MyModel.ReadNodes();
-                    MyModel.ReadNodeGroups();
-                    MyModel.ReadNodeOnlinePeriods();
+                    while (string.IsNullOrWhiteSpace(nodeName));
+
+                    float pingIntervalSec = Diagnostics.EnterPing();
+                    Diagnostics diagnostics = new Diagnostics(pingIntervalSec);
+
+                    try
+                    {
+                        int nodeId = DiagnosticContext.GetNodeId(nodeName);
+                        DateTime startTime = DateTime.Now;
+                        diagnostics.HandlePing(nodeName, startTime, pingIntervalSec);
+                    }
+                    catch (NullReferenceException)
+                    {
+                        DateTime startTime = DateTime.Now;
+                        Console.WriteLine("Enter the name of nodegroup");
+                        string nodeGroup = Console.ReadLine();
+
+                        try
+                        {
+                            int groupId = DiagnosticContext.GetGroupId(nodeGroup);
+                            Console.WriteLine("The GroupId is" + groupId);
+
+                            context.Nodes.Add(new Node { Name = nodeName, NodeGroupId = groupId });
+                            context.SaveChanges();
+                            diagnostics.HandlePing(nodeName, startTime, pingIntervalSec);
+                        }
+                        catch (ArgumentException)
+                        {
+                            context.Nodes.Add(new Node { Name = nodeName });
+                            context.SaveChanges();
+                            diagnostics.HandlePing(nodeName, startTime, pingIntervalSec);
+                        }
+                        catch (NullReferenceException)
+                        {
+                            Console.WriteLine("Created new group");
+                            context.NodeGroups.Add(new NodeGroup { Name = nodeGroup });
+                            context.SaveChanges();
+
+                            var group = context.NodeGroups
+                             .Where(g => g.Name == nodeGroup)
+                             .FirstOrDefault();
+
+                            context.Nodes.Add(new Node { Name = nodeName, NodeGroupId = group.Id });
+                            context.SaveChanges();
+                            diagnostics.HandlePing(nodeName, startTime, pingIntervalSec);
+                        }
+
+                    }
+                    Console.WriteLine("Нажмите S, если хотите вывести таблицы БД");
+                    if (Console.ReadKey().Key == ConsoleKey.S)
+                    {
+                        DiagnosticContext.ReadNodes();
+                        DiagnosticContext.ReadNodeGroups();
+                        DiagnosticContext.ReadNodeOnlinePeriods();
+                    }
                 }
             }
         }

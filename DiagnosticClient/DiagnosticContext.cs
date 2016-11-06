@@ -4,18 +4,18 @@ namespace DiagnosticClient
     using System.Data.Entity;
     using System.Linq;
 
-    public class MyModel : DbContext
+    internal class DiagnosticContext : DbContext
     {
-    
-        public MyModel()
-            : base("name=MyModel")
-        {         
+
+        public DiagnosticContext()
+            : base("name=DiagnosticContext")
+        {
         }
 
-        public virtual DbSet<Node> Nodes { get; set; } 
+        public virtual DbSet<Node> Nodes { get; set; }
         public virtual DbSet<NodeGroup> NodeGroups { get; set; }
         public virtual DbSet<NodeOnlinePeriod> NodesOnlinePeriods { get; set; }
-        public virtual DbSet<NodeLog> NodesLogs { get; set; }
+        public virtual DbSet<NodeLog> NodeLogs { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -24,7 +24,7 @@ namespace DiagnosticClient
                 .HasForeignKey(p => p.NodeGroupId);
 
             modelBuilder.Entity<NodeLog>().HasRequired(p => p.Node)
-                .WithMany(b => b.NodesLogs)
+                .WithMany(b => b.NodeLogs)
                 .HasForeignKey(p => p.NodeId);
 
             modelBuilder.Entity<NodeOnlinePeriod>().HasRequired(p => p.Node)
@@ -34,7 +34,7 @@ namespace DiagnosticClient
 
         static public void ReadNodes()
         {
-            MyModel context = new MyModel();
+            DiagnosticContext context = new DiagnosticContext();
             var list = context.Nodes.ToList();
             Console.WriteLine("Nodes");
             foreach (var item in list)
@@ -43,7 +43,7 @@ namespace DiagnosticClient
 
         static public void ReadNodeGroups()
         {
-            MyModel context = new MyModel();
+            DiagnosticContext context = new DiagnosticContext();
             var list = context.NodeGroups.ToList();
             Console.WriteLine("NodeGroups");
             foreach (var item in list)
@@ -52,40 +52,42 @@ namespace DiagnosticClient
 
         static public void ReadNodeOnlinePeriods()
         {
-            MyModel context = new MyModel();
+            DiagnosticContext context = new DiagnosticContext();
             var list = context.NodesOnlinePeriods.ToList();
             Console.WriteLine("NodeOnlinePeriods");
             foreach (var item in list)
-                Console.WriteLine("{0} | NodeId: {1} | Start:{2} | End:{3}", item.Id, item.NodeId, item.TimeStart, item.TimeEnd);
+                Console.WriteLine("{0} | NodeId: {1} | Start:{2} | End:{3}", item.Id, item.NodeId, item.StartTime, item.EndTime);
         }
 
-        static public int GetGroupId(string group_name)
+
+        static public int GetGroupId(string groupName)
         {
-            MyModel context = new MyModel();
-            var list = context.NodeGroups.ToList();
-            foreach (var Nodegroup in list)
-            {
-                if (Nodegroup.Name == group_name)
-                {
-                    return Nodegroup.Id;
-                }
-            }
-            return 0;
+            if (string.IsNullOrWhiteSpace(groupName))
+                throw new ArgumentException();
+
+            NodeGroup result;
+            using (var ctx = new DiagnosticContext())
+                result = ctx.NodeGroups.Where(g => g.Name == groupName).FirstOrDefault();
+
+            if (result == null)
+                throw new NullReferenceException();
+            else
+                return result.Id;
         }
 
-        static public int GetNodeId(string node_name)
+        static public int GetNodeId(string nodeName)
         {
-            MyModel context = new MyModel();
-            var list = context.Nodes.ToList();
-            foreach (var node in list)
-            {
-                if (node.Name == node_name)
-                {
-                    return node.Id;
-                }
-            }
-            return 0;
-        }
+            if (string.IsNullOrWhiteSpace(nodeName))
+                throw new InvalidOperationException("Node name must be not empty");
 
+            Node result;
+            using (var ctx = new DiagnosticContext())
+                result = ctx.Nodes.Where(g => g.Name == nodeName).FirstOrDefault();
+
+            if (result == null)
+                throw new NullReferenceException();
+            else
+                return result.Id;
+        }
     }
 }

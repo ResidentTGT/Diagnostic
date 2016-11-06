@@ -3,12 +3,12 @@ namespace DiagnosticClient.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class migr : DbMigration
+    public partial class MigrationFirst : DbMigration
     {
         public override void Up()
         {
             CreateTable(
-                "dbo.NodeGroups",
+                "Diagnostics.Groups",
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
@@ -18,7 +18,7 @@ namespace DiagnosticClient.Migrations
                 .Index(t => t.Name, unique: true);
             
             CreateTable(
-                "dbo.Nodes",
+                "Diagnostics.Nodes",
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
@@ -26,53 +26,53 @@ namespace DiagnosticClient.Migrations
                         NodeGroupId = c.Int(),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.NodeGroups", t => t.NodeGroupId)
+                .ForeignKey("Diagnostics.Groups", t => t.NodeGroupId)
                 .Index(t => t.Name, unique: true)
                 .Index(t => t.NodeGroupId);
             
             CreateTable(
-                "dbo.NodeOnlinePeriods",
+                "Diagnostics.Logs",
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
-                        NodeId = c.Int(nullable: false),
-                        TimeStart = c.DateTime(nullable: false),
-                        TimeEnd = c.DateTime(nullable: false),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Nodes", t => t.NodeId, cascadeDelete: true)
-                .Index(t => t.NodeId);
-            
-            CreateTable(
-                "dbo.NodeLogs",
-                c => new
-                    {
-                        Id = c.Int(nullable: false, identity: true),
-                        NodeId = c.Int(nullable: false),
                         Time = c.DateTime(nullable: false),
+                        NodeId = c.Int(nullable: false),
                         Level = c.String(nullable: false),
                         Message = c.String(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Nodes", t => t.NodeId, cascadeDelete: true)
+                .ForeignKey("Diagnostics.Nodes", t => t.NodeId, cascadeDelete: true)
+                .Index(t => t.NodeId);
+            
+            CreateTable(
+                "Diagnostics.OnlinePeriods",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        NodeId = c.Int(nullable: false),
+                        StartTime = c.DateTime(nullable: false),
+                        EndTime = c.DateTime(nullable: false),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("Diagnostics.Nodes", t => t.NodeId, cascadeDelete: true)
                 .Index(t => t.NodeId);
             
         }
         
         public override void Down()
         {
-            DropForeignKey("dbo.NodeLogs", "NodeId", "dbo.Nodes");
-            DropForeignKey("dbo.NodeOnlinePeriods", "NodeId", "dbo.Nodes");
-            DropForeignKey("dbo.Nodes", "NodeGroupId", "dbo.NodeGroups");
-            DropIndex("dbo.NodeLogs", new[] { "NodeId" });
-            DropIndex("dbo.NodeOnlinePeriods", new[] { "NodeId" });
-            DropIndex("dbo.Nodes", new[] { "NodeGroupId" });
-            DropIndex("dbo.Nodes", new[] { "Name" });
-            DropIndex("dbo.NodeGroups", new[] { "Name" });
-            DropTable("dbo.NodeLogs");
-            DropTable("dbo.NodeOnlinePeriods");
-            DropTable("dbo.Nodes");
-            DropTable("dbo.NodeGroups");
+            DropForeignKey("Diagnostics.OnlinePeriods", "NodeId", "Diagnostics.Nodes");
+            DropForeignKey("Diagnostics.Logs", "NodeId", "Diagnostics.Nodes");
+            DropForeignKey("Diagnostics.Nodes", "NodeGroupId", "Diagnostics.Groups");
+            DropIndex("Diagnostics.OnlinePeriods", new[] { "NodeId" });
+            DropIndex("Diagnostics.Logs", new[] { "NodeId" });
+            DropIndex("Diagnostics.Nodes", new[] { "NodeGroupId" });
+            DropIndex("Diagnostics.Nodes", new[] { "Name" });
+            DropIndex("Diagnostics.Groups", new[] { "Name" });
+            DropTable("Diagnostics.OnlinePeriods");
+            DropTable("Diagnostics.Logs");
+            DropTable("Diagnostics.Nodes");
+            DropTable("Diagnostics.Groups");
         }
     }
 }
