@@ -8,80 +8,53 @@ using System.Threading.Tasks;
 
 namespace DiagnosticClient
 {
-
     public class Diagnostics
     {
-        public float offlineTimeSec;
+        private readonly float offlineTimeMs;
+        private IDataContext _context;
 
-        public Diagnostics(float pingIntervalSec)
+        public Diagnostics(float pingIntervalMs, IDataContext context)
         {
-            offlineTimeSec = 2 * pingIntervalSec;
+            _context = context;
+            offlineTimeMs = 2 * pingIntervalMs;
         }
 
-        public void HandlePing(string nodeName, DateTime startTime, float pingIntervalSec)
+        public Diagnostics(float pingIntervalMs) : this(pingIntervalMs, new DataContext())
         {
-            DiagnosticContext context = new DiagnosticContext();
-            
-            int nodeId = DiagnosticContext.GetNodeId(nodeName);
+        }
+
+        public void HandlePing(string nodeName, string groupName)
+        {
+            var ctx = _context;
             try
             {
-                int id = GetIdNodeOnline(startTime, nodeId);
-                var nodeOnlinePeriod = context.NodesOnlinePeriods
-                                 .Where(g => g.Id == id)
-                                 .FirstOrDefault();
-                nodeOnlinePeriod.EndTime = startTime.AddSeconds(offlineTimeSec);
-                context.SaveChanges();
+                ctx.CheckNode(nodeName, groupName);
 
+                if (ctx.IsNodeOnline(nodeName, groupName, offlineTimeMs))
+                    ctx.RewriteNodeOnlinePeriod(nodeName, groupName, offlineTimeMs);
+                else
+                    ctx.AddNodeOnlinePeriod(nodeName, groupName, offlineTimeMs);
             }
-            catch(NullReferenceException)
-            {              
-                context.NodesOnlinePeriods.Add(new NodeOnlinePeriod { StartTime = startTime, NodeId = nodeId, EndTime = startTime.AddSeconds(offlineTimeSec) });
-                context.SaveChanges();
-            }
-
-        }
-
-        int GetIdNodeOnline(DateTime startTime, int nodeId)
-        {
-            NodeOnlinePeriod result;
-            using (var ctx = new DiagnosticContext())
-                result = ctx.NodesOnlinePeriods.Where(g => g.NodeId == nodeId).OrderByDescending(g => g.Id).FirstOrDefault();
-
-            if ((result == null) || (Math.Abs(result.EndTime.Ticks - startTime.Ticks) > offlineTimeSec * 10E6))
-                throw new NullReferenceException();
-            else
-                return result.Id;
-        }
-
-        static public float EnterPing()
-        {
-            string pingInterval;
-            bool key = true;
-            while (key)
+            catch (InvalidOperationException exc)
             {
-                try
-                {
-                    Console.WriteLine("Enter the interval of ping");
-                    pingInterval = Console.ReadLine();
-                    float pingIntervalSec = Convert.ToSingle(pingInterval);
-                    key = false;
-                    return pingIntervalSec;
-                }
-                catch (FormatException)
-                {
-                    Console.WriteLine("Interval must be number");
-
-                }
+                Console.WriteLine(exc.Message);
+                Console.WriteLine("Проверка имен не пройдена, пингование не может быть осуществлено");
             }
-            throw new ArgumentNullException();
         }
 
-        void SaveLog(string nodeName, string logLevel, string logMessage, DateTime logTime, DateTime currentLogTime)
+        public void SaveLog(string nodeName, string groupName, string logLevel, string logMessage, DateTime logTime)
         {
-            var context = new DiagnosticContext();
-            int nodeId = context.Nodes.Where(g => g.Name == nodeName).FirstOrDefault().Id;
-            context.NodeLogs.Add(new NodeLog { NodeId = nodeId, Time = logTime, Level = logLevel, Message = logMessage });
-            context.SaveChanges();
+            var ctx = _context;
+            try
+            {
+                ctx.CheckLog(nodeName, groupName, logLevel, logMessage, logTime);
+                ctx.AddLog(nodeName, groupName, logLevel, logMessage, logTime);
+            }
+            catch (InvalidOperationException exc)
+            {
+                Console.WriteLine(exc.Message);
+                Console.WriteLine("Проверка лога не пройдена, логирование не может быть осуществлено");
+            }
         }
     }
 }

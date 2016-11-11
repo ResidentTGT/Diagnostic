@@ -9,22 +9,23 @@ namespace DiagnosticClient
     {
         public Node()
         {
-            NodeLogs = new HashSet<NodeLog>();
-            NodeOnlinePeriods = new HashSet<NodeOnlinePeriod>();
+            Logs = new HashSet<Log>();
+            OnlinePeriods = new HashSet<OnlinePeriod>();
         }
 
         public int Id { get; set; }
 
         [Required]
-        [Index(IsUnique = true)]
+        [Index("IX_Index", 1, IsUnique = true)]
         [MaxLength(128)]
         public string Name { get; set; }
 
 
-        public NodeGroup NodeGroup { get; set; }
+        public Group Group { get; set; }
+        [Index("IX_Index", 2, IsUnique = true)]
         public int? NodeGroupId { get; set; }
 
-        public virtual ICollection<NodeOnlinePeriod> NodeOnlinePeriods { get; set; }
-        public virtual ICollection<NodeLog> NodeLogs { get; set; }
+        public virtual ICollection<OnlinePeriod> OnlinePeriods { get; set; }
+        public virtual ICollection<Log> Logs { get; set; }
     }
 }

@@ -3,21 +3,27 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 namespace DiagnosticClient
 {
-    [Table("OnlinePeriods", Schema = "Diagnostics")]
-    public class NodeOnlinePeriod
+    [Table("Logs", Schema = "Diagnostics")]
+    public class Log
     {
-        public NodeOnlinePeriod()
+        public Log()
         {
-
         }
         public int Id { get; set; }
+        public DateTime Time { get; set; }
 
         public int NodeId { get; set; }
         public Node Node { get; set; }
 
         [Required]
-        public DateTime StartTime { get; set; }
-        [Required]
-        public DateTime EndTime { get; set; }
+        public string Level { get; set; }
+
+        [MaxLength(8000), Required]
+        public string Message { get; set; }
+
+    }
+    public struct Logdf
+    {
+
     }
 }

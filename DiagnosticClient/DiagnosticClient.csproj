@@ -54,16 +54,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DiagnosticContext.cs" />
-    <Compile Include="Migrations\201611061958476_MigrationFirst.cs" />
-    <Compile Include="Migrations\201611061958476_MigrationFirst.Designer.cs">
-      <DependentUpon>201611061958476_MigrationFirst.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Node.cs" />
-    <Compile Include="NodeGroup.cs" />
-    <Compile Include="NodeLog.cs" />
-    <Compile Include="NodeOnlinePeriod.cs" />
+    <Compile Include="DiagnosticDbContext.cs" />
+    <Compile Include="DataContext.cs" />
+    <Compile Include="IDataContext.cs" />
+    <Compile Include="Entities\Node.cs" />
+    <Compile Include="Entities\Group.cs" />
+    <Compile Include="Entities\Log.cs" />
+    <Compile Include="Entities\OnlinePeriod.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
@@ -97,11 +94,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\201611061958476_MigrationFirst.resx">
-      <DependentUpon>201611061958476_MigrationFirst.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace DiagnosticClient
 {
     [Table("Groups", Schema = "Diagnostics")]
-    public class NodeGroup
+    public class Group
     {
-        public NodeGroup()
+        public Group()
         {
             Nodes = new HashSet<Node>();
         }
