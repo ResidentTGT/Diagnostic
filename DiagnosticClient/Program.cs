@@ -77,7 +77,7 @@ namespace DiagnosticClient
                         diagnostics.HandlePing(nodeName, groupName);
                     }
                 }
-                Console.WriteLine("Нажмите S, если хотите вывести таблицы БД");
+                Console.WriteLine("Enter S, if you want to see DB");
                 if (Console.ReadKey().Key == ConsoleKey.S)
                 {
                     ReadNodes();

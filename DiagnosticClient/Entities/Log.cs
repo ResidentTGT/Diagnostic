@@ -22,8 +22,4 @@ namespace DiagnosticClient
         public string Message { get; set; }
 
     }
-    public struct Logdf
-    {
-
-    }
 }

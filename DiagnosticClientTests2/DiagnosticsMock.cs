@@ -8,68 +8,33 @@ namespace DiagnosticClient.Tests
 {
     internal class DiagnosticsMock : IDataContext
     {
-        public List<Log> NodeLogs = new List<Log>();
-        public List<Node> Nodess = new List<Node>();
-        public List<Group> NodeGroups = new List<Group>();
-        public List<OnlinePeriod> NodeOnlinePeriods = new List<OnlinePeriod>();
-
-
-        public IList<Log> Logs
-        {
-            get
-            {
-                return NodeLogs;
-            }
-            set
-            {
-            }
-        }
-        public IList<Node> Nodes
-        {
-            get
-            {
-                return Nodess;
-            }
-            set
-            {
-            }
-        }
-        public IList<Group> Groups
-        {
-            get
-            {
-                return NodeGroups;
-            }
-            set
-            {
-            }
-        }
-        public IList<OnlinePeriod> OnlinePeriods
-        {
-            get
-            {
-                return NodeOnlinePeriods;
-            }
-            set
-            {
-            }
-        }
+        public List<Log> Logs = new List<Log>();
+        public List<Node> Nodes = new List<Node>();
+        public List<Group> Groups = new List<Group>();
+        public List<OnlinePeriod> OnlinePeriods = new List<OnlinePeriod>();
 
         public void AddNodeOnlinePeriod(string nodeName, string groupName, float offlineTimeMs)
         {
+            if (string.IsNullOrWhiteSpace(nodeName))
+                throw new ArgumentException();
+            Nodes.Single(n => n.Name == nodeName);
             OnlinePeriods.Add(new OnlinePeriod { NodeId = 2, StartTime = DateTime.Now, EndTime = DateTime.Now.AddMilliseconds(offlineTimeMs) });
         }
-        public bool CheckNode(string nodeName, string groupName)
+        public bool CheckNodeExistence(string nodeName, string groupName)
         {
             if (string.IsNullOrWhiteSpace(nodeName))
-                throw new InvalidOperationException("Пустое имя пользователя");
-            return true;
+                throw new ArgumentException();
+            if (Nodes.Any(g => g.Name == nodeName && g.NodeGroupId == 1))
+                return true;
+            return false;
         }
 
         public bool IsNodeOnline(string nodeName, string groupName, float offlineTimeMs)
         {
-
-            if (OnlinePeriods[0].StartTime.Subtract(OnlinePeriods[0].EndTime).TotalMilliseconds > offlineTimeMs)
+            if (string.IsNullOrWhiteSpace(nodeName))
+                throw new ArgumentException();
+            var currentTime = DateTime.Now;
+            if (currentTime.Subtract(OnlinePeriods[0].EndTime).TotalMilliseconds > offlineTimeMs)
                 return false;
             else
                 return true;
@@ -77,25 +42,21 @@ namespace DiagnosticClient.Tests
 
         public void RewriteNodeOnlinePeriod(string nodeName, string groupName, float offlineTimeMs)
         {
-            OnlinePeriods[0].EndTime = DateTime.Now;
+            if (string.IsNullOrWhiteSpace(nodeName))
+                throw new ArgumentException();
+            OnlinePeriods[0].EndTime = DateTime.Now.AddMilliseconds(offlineTimeMs);
         }
 
         public void AddLog(string nodeName, string groupName, string logLevel, string logMessage, DateTime logTime)
         {
-            Logs.Add(new Log { Id = 1, Level = logLevel, Message = logMessage, NodeId = 1, Time = logTime });
-        }
-
-        public bool CheckLog(string nodeName, string groupName, string logLevel, string logMessage, DateTime logTime)
-        {
             if (string.IsNullOrWhiteSpace(nodeName))
-                throw new InvalidOperationException("Пустое имя пользователя");
+                throw new InvalidOperationException("Empty node's name");
             if (string.IsNullOrWhiteSpace(logLevel))
-                throw new InvalidOperationException("Не задан уровень лога");
+                throw new InvalidOperationException("Empty log's level");
             if (string.IsNullOrWhiteSpace(logMessage))
-                throw new InvalidOperationException("Сообщение лога пустое");
-            if (string.IsNullOrWhiteSpace(logTime.ToString()))
-                throw new InvalidOperationException("Не указано время");
-            return true;
+                throw new InvalidOperationException("Empty log's message");
+
+            Logs.Add(new Log { Id = 1, Level = logLevel, Message = logMessage, NodeId = 1, Time = logTime });
         }
     }
 }

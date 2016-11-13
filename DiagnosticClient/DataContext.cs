@@ -10,60 +10,91 @@ namespace DiagnosticClient
     {
         private DiagnosticDbContext dbContext = new DiagnosticDbContext();
 
-        IList<Log> IDataContext.Logs
-        { get; set; }
-        IList<Node> IDataContext.Nodes
-        { get; set; }
-        IList<Group> IDataContext.Groups
-        { get; set; }
-        IList<OnlinePeriod> IDataContext.OnlinePeriods
-        { get; set; }
-
         private int GetNodeId(string nodeName, string groupName)
         {
-            int nodeId;
-            int groupId = GetGroupId(groupName.ToUpper());
-
-            if (string.IsNullOrWhiteSpace(groupName))
-                return nodeId = dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.NodeGroupId == null).Id;
+            if (string.IsNullOrWhiteSpace(nodeName))
+                throw new ArgumentException("Empty node's name");
+            if (CheckNodeExistence(nodeName, groupName))
+            {
+                int nodeId;
+                if (string.IsNullOrWhiteSpace(groupName))
+                    nodeId = dbContext.Nodes.Single(g => g.Name == nodeName && g.NodeGroupId == null).Id;
+                else
+                {
+                    int groupId = GetGroupId(groupName.ToUpper());
+                    nodeId = dbContext.Nodes.Single(g => g.Name == nodeName && g.NodeGroupId == groupId).Id;
+                }
+                return nodeId;
+            }
             else
-                return nodeId = dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.NodeGroupId == groupId).Id;
+                throw new InvalidOperationException("No node with such name and group");
         }
 
         public bool IsNodeOnline(string nodeName, string groupName, float offlineTimeMs)
         {
-            DateTime startTime = DateTime.Now;
-            int nodeId = GetNodeId(nodeName, groupName);
-
-            OnlinePeriod result;
-            result = dbContext.NodesOnlinePeriods.Where(g => g.NodeId == nodeId).OrderByDescending(g => g.Id).FirstOrDefault();
-
-            if (result == null || (startTime.Subtract(result.EndTime).TotalMilliseconds) > offlineTimeMs)
-                return false;
-            else
-                return true;
+            if (string.IsNullOrWhiteSpace(nodeName))
+                throw new ArgumentException("Empty node's name");
+            try
+            {
+                int nodeId = GetNodeId(nodeName, groupName);
+                DateTime startTime = DateTime.Now;
+                OnlinePeriod result = dbContext.NodesOnlinePeriods.Where(g => g.NodeId == nodeId).OrderByDescending(g => g.Id).FirstOrDefault();
+                if (result == null || (startTime.Subtract(result.EndTime).TotalMilliseconds) > offlineTimeMs)
+                    return false;
+                else
+                    return true;
+            }
+            catch (InvalidOperationException)
+            {
+                throw new InvalidOperationException("Сhecking online could not be completed");
+            }
         }
 
         public void RewriteNodeOnlinePeriod(string nodeName, string groupName, float offlineTimeMs)
         {
-            DateTime startTime = DateTime.Now;
-            int nodeId = GetNodeId(nodeName, groupName);
-            var nodeOnlinePeriod = dbContext.NodesOnlinePeriods.Where(g => g.NodeId == nodeId).OrderByDescending(g => g.Id).FirstOrDefault();
-            nodeOnlinePeriod.EndTime = startTime.AddMilliseconds(offlineTimeMs);
-            dbContext.SaveChanges();
+            if (string.IsNullOrWhiteSpace(nodeName))
+                throw new ArgumentException("Empty node's name");
+            try
+            {
+                int nodeId = GetNodeId(nodeName, groupName);
+                DateTime startTime = DateTime.Now;
+                var nodeOnlinePeriod = dbContext.NodesOnlinePeriods.Where(g => g.NodeId == nodeId).OrderByDescending(g => g.Id).FirstOrDefault();
+                nodeOnlinePeriod.EndTime = startTime.AddMilliseconds(offlineTimeMs);
+                dbContext.SaveChanges();
+            }
+            catch (InvalidOperationException)
+            {
+                throw new InvalidOperationException("Rewriting online period could not be completed");
+            }
         }
 
         public void AddNodeOnlinePeriod(string nodeName, string groupName, float offlineTimeMs)
         {
-            DateTime startTime = DateTime.Now;
-            DateTime endTime = startTime.AddMilliseconds(offlineTimeMs);
-            int nodeId = GetNodeId(nodeName, groupName);
-            dbContext.NodesOnlinePeriods.Add(new OnlinePeriod { StartTime = startTime, NodeId = nodeId, EndTime = startTime.AddMilliseconds(offlineTimeMs) });
-            dbContext.SaveChanges();
+            if (string.IsNullOrWhiteSpace(nodeName))
+                throw new ArgumentException("Empty node's name");
+            try
+            {
+                int nodeId = GetNodeId(nodeName, groupName);
+                DateTime startTime = DateTime.Now;
+                DateTime endTime = startTime.AddMilliseconds(offlineTimeMs);
+                dbContext.NodesOnlinePeriods.Add(new OnlinePeriod { StartTime = startTime, NodeId = nodeId, EndTime = endTime });
+                dbContext.SaveChanges();
+            }
+            catch (InvalidOperationException)
+            {
+                throw new InvalidOperationException("Adding online period could not be completed");
+            }
         }
 
         public void AddLog(string nodeName, string groupName, string logLevel, string logMessage, DateTime logTime)
         {
+            if (string.IsNullOrWhiteSpace(nodeName))
+                throw new ArgumentException("Empty node's name");
+            if (string.IsNullOrWhiteSpace(logLevel))
+                throw new ArgumentException("Empty log's level");
+            if (string.IsNullOrWhiteSpace(logMessage))
+                throw new ArgumentException("Empty log's message");
+
             int nodeId = GetNodeId(nodeName, groupName);
             dbContext.Logs.Add(new Log { NodeId = nodeId, Time = logTime, Level = logLevel, Message = logMessage });
             dbContext.SaveChanges();
@@ -72,60 +103,20 @@ namespace DiagnosticClient
         private int GetGroupId(string groupName)
         {
             if (string.IsNullOrWhiteSpace(groupName))
-                throw new ArgumentException();
-            int groupId;
-            return groupId = dbContext.Groups.Single(g => g.Name.ToUpper() == groupName.ToUpper()).Id;
+                throw new ArgumentException("Empty group's name");
+            return dbContext.Groups.Single(g => g.Name == groupName).Id;
         }
 
-        public bool CheckNode(string nodeName, string groupName)
+        public bool CheckNodeExistence(string nodeName, string groupName)
         {
             if (string.IsNullOrWhiteSpace(nodeName))
-                throw new InvalidOperationException("Пустое имя пользователя");
-            try
-            {
-                if (string.IsNullOrWhiteSpace(groupName))
-                    dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.NodeGroupId == null);
-
-                dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.Group.Name.ToUpper() == groupName.ToUpper());
-            }
-            catch (InvalidOperationException) when (dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.NodeGroupId == null) == null)
-            {
-                throw new InvalidOperationException("Пользователя с таким именем не существует");
-            }
-
-            catch (InvalidOperationException) when (dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.Group.Name.ToUpper() == groupName.ToUpper()) == null)
-            {
-                throw new InvalidOperationException("Пользователя с таким именем и группой не существует");
-            }
-            return true;
-        }
-
-        public bool CheckLog(string nodeName, string groupName, string logLevel, string logMessage, DateTime logTime)
-        {
-            if (string.IsNullOrWhiteSpace(nodeName))
-                throw new InvalidOperationException("Пустое имя пользователя");
-            if (string.IsNullOrWhiteSpace(logLevel))
-                throw new InvalidOperationException("Не задан уровень лога");
-            if (string.IsNullOrWhiteSpace(logMessage))
-                throw new InvalidOperationException("Сообщение лога пустое");
-            if (string.IsNullOrWhiteSpace(logTime.ToString()))
-                throw new InvalidOperationException("Не указано время");
-            try
-            {
-                if (string.IsNullOrWhiteSpace(groupName))
-                    dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.NodeGroupId == null);
-                dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.Group.Name.ToUpper() == groupName.ToUpper());
-            }
-            catch (InvalidOperationException) when (dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.NodeGroupId == null) == null)
-            {
-                throw new InvalidOperationException("Пользователя с таким именем не существует");
-            }
-
-            catch (InvalidOperationException) when (dbContext.Nodes.Single(g => g.Name.ToUpper() == nodeName.ToUpper() && g.Group.Name.ToUpper() == groupName.ToUpper()) == null)
-            {
-                throw new InvalidOperationException("Пользователя с таким именем и группой не существует");
-            }
-            return true;
+                throw new ArgumentException("Empty node's name");
+            bool exist = false;
+            if (string.IsNullOrWhiteSpace(groupName))
+                exist = dbContext.Nodes.Any(g => g.Name == nodeName && g.NodeGroupId == null);
+            else
+                exist = dbContext.Nodes.Any(g => g.Name == nodeName && g.Group.Name == groupName);
+            return exist;
         }
     }
 }
