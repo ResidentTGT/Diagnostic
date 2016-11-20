@@ -10,16 +10,16 @@ namespace DiagnosticClient
 {
     public class Diagnostics
     {
-        private readonly float offlineTimeMs;
+        private readonly int offlineTimeMs;
         private IDataContext _context;
 
-        public Diagnostics(float pingIntervalMs, IDataContext context)
+        public Diagnostics(int pingIntervalMs, IDataContext context)
         {
             _context = context;
             offlineTimeMs = 2 * pingIntervalMs;
         }
 
-        public Diagnostics(float pingIntervalMs) : this(pingIntervalMs, new DataContext())
+        public Diagnostics(int pingIntervalMs) : this(pingIntervalMs, new DataContext())
         {
         }
 
@@ -30,10 +30,17 @@ namespace DiagnosticClient
             var ctx = _context;
             if (ctx.CheckNodeExistence(nodeName, groupName))
             {
-                if (ctx.IsNodeOnline(nodeName, groupName, offlineTimeMs))
-                    ctx.RewriteNodeOnlinePeriod(nodeName, groupName, offlineTimeMs);
+                if (ctx.IsNodeOnline(nodeName, groupName))
+                {
+                    DateTime endTime = DateTime.Now.AddMilliseconds(offlineTimeMs);
+                    ctx.SetEndTime(nodeName, groupName, endTime);
+                }
                 else
-                    ctx.AddNodeOnlinePeriod(nodeName, groupName, offlineTimeMs);
+                {
+                    DateTime startTime = DateTime.Now;
+                    DateTime endTime = startTime.AddMilliseconds(offlineTimeMs);
+                    ctx.AddNodeOnlinePeriod(nodeName, groupName, startTime,endTime);
+                }
             }
             else
                 throw new InvalidOperationException("No node with such name and group");

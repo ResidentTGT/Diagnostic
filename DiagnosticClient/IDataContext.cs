@@ -8,11 +8,10 @@ namespace DiagnosticClient
 {
     public interface IDataContext
     {
-        void AddNodeOnlinePeriod(string nodeName, string groupName, float offlineTimeMs);
-        bool IsNodeOnline(string nodeName, string groupName, float offlineTimeMs);
-        void RewriteNodeOnlinePeriod(string nodeName, string groupName, float offlineTimeMs);
+        void AddNodeOnlinePeriod(string nodeName, string groupName, DateTime startTime,DateTime endTime);
+        bool IsNodeOnline(string nodeName, string groupName);
+        void SetEndTime(string nodeName, string groupName, DateTime endTime);
         void AddLog(string nodeName, string groupName, string logLevel, string logMessage, DateTime logTime);
-        bool CheckNodeExistence(string nodeName, string groupName);
-        
+        bool CheckNodeExistence(string nodeName, string groupName);       
     }
 }

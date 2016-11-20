@@ -25,7 +25,7 @@ namespace DiagnosticClient
                 }
                 while (string.IsNullOrWhiteSpace(nodeName));
 
-                float pingIntervalSec = EnterPing();
+                int pingIntervalSec = EnterPing();
                 Diagnostics diagnostics = new Diagnostics(pingIntervalSec);
                 
                 Console.WriteLine("Enter the name of nodegroup");
@@ -118,7 +118,7 @@ namespace DiagnosticClient
                 Console.WriteLine("{0} | NodeId: {1} | Start:{2} | End:{3}", item.Id, item.NodeId, item.StartTime, item.EndTime);
         }
 
-        public static float EnterPing()
+        public static int EnterPing()
         {
             string pingInterval;
             bool key = true;
@@ -128,7 +128,7 @@ namespace DiagnosticClient
                 {
                     Console.WriteLine("Enter the interval of ping");
                     pingInterval = Console.ReadLine();
-                    float pingIntervalMs = Convert.ToSingle(pingInterval);
+                    int pingIntervalMs = Convert.ToInt32(pingInterval);
                     key = false;
                     return pingIntervalMs;
                 }
